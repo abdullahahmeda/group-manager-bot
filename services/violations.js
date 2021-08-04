@@ -9,6 +9,7 @@ const onURLViolation = (msg) => {
     const chatId = msg.chat.id;
     const messageId = msg.message_id;
 
+    console.log(`URL violation, trying to delete the message`);
     bot.deleteMessage(chatId, messageId);
 
     const senderName = msg.from.last_name
@@ -34,6 +35,7 @@ const onProhibitedViolation = (msg) => {
     const chatId = msg.chat.id;
     const messageId = msg.message_id;
 
+    console.log(`Prohibited word violation, trying to delete the message`);
     bot.deleteMessage(chatId, messageId);
 
     const senderName = msg.from.last_name
@@ -59,6 +61,7 @@ const onMentionViolation = (msg) => {
     const chatId = msg.chat.id;
     const messageId = msg.message_id;
 
+    console.log(`Mention violation, trying to delete the message`);
     bot.deleteMessage(chatId, messageId);
 
     const senderName = msg.from.last_name
