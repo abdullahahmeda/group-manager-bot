@@ -1,15 +1,13 @@
 const myEmitter = require("./events");
+const bot = require("../bot");
 
 /**
  *
- * @param {TelegramBot} bot A telegram bot instance
  * @param {TelegramBot.Message} msg The message object
- * @param {Database} db The database instance
  */
-const onURLViolation = (bot, msg, db) => {
+const onURLViolation = (msg) => {
     const chatId = msg.chat.id;
     const messageId = msg.message_id;
-    const senderId = msg.from.id;
 
     bot.deleteMessage(chatId, messageId);
 
@@ -23,22 +21,18 @@ const onURLViolation = (bot, msg, db) => {
 
     bot.sendMessage(chatId, message, { parse_mode: "html" });
     myEmitter.emit("add_alert_to_member", {
-        senderId,
-        db,
+        msg,
         reason: "telegram_url",
     });
 };
 
 /**
  *
- * @param {TelegramBot} bot A telegram bot instance
  * @param {TelegramBot.Message} msg The message object
- * @param {Database} db The database instance
  */
-const onProhibitedViolation = (bot, msg, db) => {
+const onProhibitedViolation = (msg) => {
     const chatId = msg.chat.id;
     const messageId = msg.message_id;
-    const senderId = msg.from.id;
 
     bot.deleteMessage(chatId, messageId);
 
@@ -52,22 +46,18 @@ const onProhibitedViolation = (bot, msg, db) => {
 
     bot.sendMessage(chatId, message, { parse_mode: "html" });
     myEmitter.emit("add_alert_to_member", {
-        senderId,
-        db,
+        msg,
         reason: "prohibited_word",
     });
 };
 
 /**
  *
- * @param {TelegramBot} bot A telegram bot instance
  * @param {TelegramBot.Message} msg The message object
- * @param {Database} db The database instance
  */
-const onMentionViolation = (bot, msg, db) => {
+const onMentionViolation = (msg) => {
     const chatId = msg.chat.id;
     const messageId = msg.message_id;
-    const senderId = msg.from.id;
 
     bot.deleteMessage(chatId, messageId);
 
@@ -80,7 +70,7 @@ const onMentionViolation = (bot, msg, db) => {
     `;
 
     bot.sendMessage(chatId, message, { parse_mode: "html" });
-    myEmitter.emit("add_alert_to_member", { senderId, db, reason: "mention" });
+    myEmitter.emit("add_alert_to_member", { msg, reason: "mention" });
 };
 
 exports.onURLViolation = onURLViolation;

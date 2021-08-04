@@ -30,7 +30,7 @@ const containsProhibited = (s) => {
 const containsMention = (msg) => {
     const entities = msg.entities ? msg.entities : [];
     for (let entity of entities) {
-        if (entity.type === "text_mention") return true;
+        if (entity.type.indexOf("mention") > -1) return true;
     }
     return false;
 };
