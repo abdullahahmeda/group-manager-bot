@@ -19,8 +19,6 @@ myEmitter.on("add_alert_to_member", ({ msg, reason }) => {
     stmt = db.prepare(`SELECT * FROM settings WHERE key = ?`);
     const maxAllowedAlerts = stmt.get("max_alerts").value;
 
-    console.log(maxAllowedAlerts, alerts);
-
     if (alerts.length >= maxAllowedAlerts) {
         try {
             bot.kickChatMember(chatId, senderId);
