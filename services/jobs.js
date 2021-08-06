@@ -18,7 +18,7 @@ const initScheduler = () => {
         //
     }
 
-    job = new SimpleIntervalJob({ minutes: repetition_period }, task);
+    job = new SimpleIntervalJob({ hours: repetition_period }, task);
     scheduler.addSimpleIntervalJob(job);
 
     let isEnabled = false;
@@ -37,7 +37,7 @@ const initScheduler = () => {
 
 const setJobPeriod = (period) => {
     stopJob();
-    job = new SimpleIntervalJob({ minutes: period }, task);
+    job = new SimpleIntervalJob({ hours: period }, task);
     scheduler.addSimpleIntervalJob(job);
 };
 
