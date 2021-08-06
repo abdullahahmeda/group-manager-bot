@@ -12,7 +12,9 @@
   "dependencies": {
     "better-sqlite3": "^7.4.3",
     "dotenv": "^10.0.0",
-    "node-telegram-bot-api": "^0.54.0"
+    "node-schedule": "^2.0.0",
+    "node-telegram-bot-api": "^0.54.0",
+    "toad-scheduler": "^1.5.0"
   },
   "devDependencies": {
     "eslint": "^7.32.0",

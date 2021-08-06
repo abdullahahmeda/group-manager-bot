@@ -14,6 +14,8 @@ const {
 
 const bot = require("./bot");
 const db = require("./db");
+const myEmitter = require("./services/events");
+const { initScheduler } = require("./services/jobs");
 
 try {
     setupDB(db);
@@ -23,7 +25,7 @@ try {
     process.exit(1);
 }
 
-//bot.unbanChatMember(process.env.TELEGRAM_GROUP_ID, 929722187);
+initScheduler();
 
 console.log("Bot has started");
 bot.on("text", (msg) => {
@@ -34,7 +36,11 @@ bot.on("text", (msg) => {
         if (containsTelegramURL(messageText)) onURLViolation(msg);
         else if (containsProhibited(messageText)) onProhibitedViolation(msg);
         else if (containsMention(msg)) onMentionViolation(msg);
+    } else if (chatId == process.env.TELEGRAM_ADMIN_ID) {
+        myEmitter.emit("admin_message", { msg });
     }
 });
+
+process.on("exit", () => db.close());
 
 bot.on("polling_error", (err) => console.log(err));

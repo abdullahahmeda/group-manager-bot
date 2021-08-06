@@ -39,20 +39,28 @@ const createTables = (db) => {
     stmt = db.prepare(`
     CREATE TABLE IF NOT EXISTS settings (
         key VARCHAR UNIQUE,
-        value VARCHAR
+        value TEXT
     )`);
     stmt.run();
 };
 
 const seedDB = (db) => {
-    try {
-        let stmt = db.prepare(
-            `INSERT INTO settings (key, value) VALUES (?, ?)`
-        );
-        stmt.run("max_alerts", "3");
-    } catch (error) {
-        /**/
-    } // Field already exists
+    const settingsSeeds = [
+        ["max_alerts", "3"],
+        ["automatic_message_status", "disabled"],
+        ["automatic_message_text", ""],
+        ["automatic_message_repetition_period", "1"],
+    ];
+    for (let setting of settingsSeeds) {
+        try {
+            let stmt = db.prepare(
+                `INSERT INTO settings (key, value) VALUES (?, ?)`
+            );
+            stmt.run(setting[0], setting[1]);
+        } catch (error) {
+            // Field already exists
+        }
+    }
 };
 
 exports.createDBConnection = createDBConnection;

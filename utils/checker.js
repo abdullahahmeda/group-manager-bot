@@ -1,3 +1,5 @@
+const db = require("../db");
+
 /**
  *
  * Returns whether a string contains a telegram URL or not
@@ -16,8 +18,12 @@ const containsTelegramURL = (s) => {
  * @returns {boolean}
  */
 const containsProhibited = (s) => {
-    // change this
-    return s.indexOf("fuck") > -1;
+    const stmt = db.prepare(`SELECT * FROM prohibited_words`);
+    const words = stmt.all();
+    for (let wordObj of words) {
+        if (s.indexOf(wordObj.word) > -1) return true;
+    }
+    return false;
 };
 
 /**
