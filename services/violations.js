@@ -12,15 +12,6 @@ const onURLViolation = (msg) => {
     console.log(`URL violation, trying to delete the message`);
     bot.deleteMessage(chatId, messageId);
 
-    const senderName = msg.from.last_name
-        ? `${msg.from.first_name} ${msg.from.last_name}`
-        : msg.from.first_name;
-    const message = `
-    ⛔ إنذار للعضو <strong>${senderName}</strong>
-السبب: <strong>وضع رابط خارجي</strong>
-    `;
-
-    bot.sendMessage(chatId, message, { parse_mode: "html" });
     myEmitter.emit("add_alert_to_member", {
         msg,
         reason: "telegram_url",
@@ -38,15 +29,6 @@ const onProhibitedViolation = (msg) => {
     console.log(`Prohibited word violation, trying to delete the message`);
     bot.deleteMessage(chatId, messageId);
 
-    const senderName = msg.from.last_name
-        ? `${msg.from.first_name} ${msg.from.last_name}`
-        : msg.from.first_name;
-    const message = `
-    ⛔ إنذار للعضو <strong>${senderName}</strong>
-السبب: <strong>كلمة محظورة</strong>
-    `;
-
-    bot.sendMessage(chatId, message, { parse_mode: "html" });
     myEmitter.emit("add_alert_to_member", {
         msg,
         reason: "prohibited_word",
@@ -64,15 +46,6 @@ const onMentionViolation = (msg) => {
     console.log(`Mention violation, trying to delete the message`);
     bot.deleteMessage(chatId, messageId);
 
-    const senderName = msg.from.last_name
-        ? `${msg.from.first_name} ${msg.from.last_name}`
-        : msg.from.first_name;
-    const message = `
-    ⛔ إنذار للعضو <strong>${senderName}</strong>
-السبب: <strong>أسماء الحسابات والقروبات ممنوعة</strong>
-    `;
-
-    bot.sendMessage(chatId, message, { parse_mode: "html" });
     myEmitter.emit("add_alert_to_member", { msg, reason: "mention" });
 };
 
