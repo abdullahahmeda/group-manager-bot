@@ -20,8 +20,10 @@ const containsTelegramURL = (s) => {
 const containsProhibited = (s) => {
     const stmt = db.prepare(`SELECT * FROM prohibited_words`);
     const words = stmt.all();
-    const regex = new RegExp(words.join("|"));
-    return regex.test(s);
+    for (let wordObj of words) {
+        if (s.indexOf(wordObj.word) > -1) return true;
+    }
+    return false;
 };
 
 /**
