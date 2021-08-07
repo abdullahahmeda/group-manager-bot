@@ -6,7 +6,7 @@ const scheduler = new ToadScheduler();
 
 let job = null;
 
-const initScheduler = () => {
+const initAutomaticMessageScheduler = () => {
     let repetition_period = 1; // every 1 hour
     try {
         let stmt = db.prepare(
@@ -19,7 +19,7 @@ const initScheduler = () => {
     }
 
     job = new SimpleIntervalJob({ hours: repetition_period }, task);
-    scheduler.addSimpleIntervalJob(job);
+    addJob(job);
 
     let isEnabled = false;
     try {
@@ -33,6 +33,10 @@ const initScheduler = () => {
     }
 
     if (!isEnabled) job.stop();
+};
+
+const addJob = (job) => {
+    scheduler.addSimpleIntervalJob(job);
 };
 
 const setJobPeriod = (period) => {
@@ -51,9 +55,10 @@ const removeJob = () => {
 
 const getJob = () => job;
 
-exports.initScheduler = initScheduler;
+exports.initAutomaticMessageScheduler = initAutomaticMessageScheduler;
 exports.setJobPeriod = setJobPeriod;
 exports.removeJob = removeJob;
+exports.addJob = addJob;
 exports.getJob = getJob;
 exports.startJob = startJob;
 exports.stopJob = stopJob;

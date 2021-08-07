@@ -22,17 +22,25 @@ const onURLViolation = (msg) => {
  *
  * @param {TelegramBot.Message} msg The message object
  */
-const onProhibitedViolation = (msg) => {
+const onProhibitedViolation = (msg, priority) => {
     const chatId = msg.chat.id;
     const messageId = msg.message_id;
 
     console.log(`Prohibited word violation, trying to delete the message`);
     bot.deleteMessage(chatId, messageId);
 
-    myEmitter.emit("add_alert_to_member", {
-        msg,
-        reason: "prohibited_word",
-    });
+    if (priority === 1) {
+        myEmitter.emit("add_alert_to_member", {
+            msg,
+            reason: "prohibited_word",
+        });
+    } else if (priority === 2) {
+        console.log("ahhhh");
+        myEmitter.emit("kick_member", {
+            msg,
+            reason: "prohibited_word",
+        });
+    }
 };
 
 /**

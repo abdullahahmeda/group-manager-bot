@@ -4,26 +4,47 @@ const db = require("../db");
  *
  * Returns whether a string contains a telegram URL or not
  *
- * @param {string} s
+ * @param {TelegramBot.Message} msg
  * @returns {boolean}
  */
-const containsTelegramURL = (s) => {
+const containsTelegramURL = (msg) => {
+    const entities = msg.entities ? msg.entities : [];
     const regex = /([https]+?:\/+)?[a-z0-9]*?\.?(telegram|t)\.me/i;
-    return regex.test(s);
+    for (let entity of entities) {
+        if (entity.type === "url") {
+            const messageText = msg.text;
+            const link = messageText.slice(
+                entity.offset,
+                entity.offset + entity.length
+            );
+            if (regex.test(link)) {
+                const stmt = db.prepare(
+                    `SELECT * FROM accepted_links WHERE link LIKE ?`
+                );
+                const result = stmt.get(`%${link}%`);
+                if (result) return false;
+                else return true;
+            }
+        }
+    }
+    return false;
 };
 
 /**
  *
  * @param {string} s
- * @returns {boolean}
+ * @returns {number}
  */
 const containsProhibited = (s) => {
     const stmt = db.prepare(`SELECT * FROM prohibited_words`);
     const words = stmt.all();
     for (let wordObj of words) {
-        if (s.indexOf(wordObj.word) > -1) return true;
+        if (s.indexOf(wordObj.word) > -1) {
+            if (wordObj.punishment === "alert") return 1;
+            else if (wordObj.punishment === "kick") return 2;
+        }
     }
-    return false;
+    return 0;
 };
 
 /**

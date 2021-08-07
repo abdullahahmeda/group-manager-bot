@@ -15,7 +15,7 @@ const {
 const bot = require("./bot");
 const db = require("./db");
 const myEmitter = require("./services/events");
-const { initScheduler } = require("./services/jobs");
+const { initAutomaticMessageScheduler } = require("./services/jobs");
 
 try {
     setupDB(db);
@@ -25,7 +25,7 @@ try {
     process.exit(1);
 }
 
-initScheduler();
+initAutomaticMessageScheduler();
 
 console.log("Bot has started");
 bot.on("text", (msg) => {
@@ -33,8 +33,10 @@ bot.on("text", (msg) => {
     const messageText = msg.text;
 
     if (chatId == process.env.TELEGRAM_GROUP_ID) {
-        if (containsTelegramURL(messageText)) onURLViolation(msg);
-        else if (containsProhibited(messageText)) onProhibitedViolation(msg);
+        const prohibitedPriority = containsProhibited(messageText);
+        if (containsTelegramURL(msg)) onURLViolation(msg);
+        else if (prohibitedPriority)
+            onProhibitedViolation(msg, prohibitedPriority);
         //else if (containsMention(msg)) onMentionViolation(msg);
     } else if (chatId == process.env.TELEGRAM_ADMIN_ID) {
         myEmitter.emit("admin_message", { msg });

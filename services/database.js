@@ -25,14 +25,22 @@ const setupDB = (db) => {
 const createTables = (db) => {
     let stmt = db.prepare(`
     CREATE TABLE IF NOT EXISTS prohibited_words (
-        word VARCHAR UNIQUE
+        word VARCHAR UNIQUE,
+        punishment VARCHAR DEFAULT 'alert'
     )`);
     stmt.run();
 
     stmt = db.prepare(`
     CREATE TABLE IF NOT EXISTS alerts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         telegram_id VARCHAR,
         reason VARCHAR
+    )`);
+    stmt.run();
+
+    stmt = db.prepare(`
+    CREATE TABLE IF NOT EXISTS accepted_links (
+        link VARCHAR
     )`);
     stmt.run();
 

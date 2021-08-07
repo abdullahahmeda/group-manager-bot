@@ -1,23 +1,16 @@
 const EventEmitter = require("events");
 const db = require("../db");
 const bot = require("../bot");
-const { startJob, stopJob, setJobPeriod } = require("./jobs");
+const { startJob, stopJob, setJobPeriod, addJob } = require("./jobs");
+const getArReason = require("../utils/getArReason");
+const { SimpleIntervalJob, Task } = require("toad-scheduler");
 
 const myEmitter = new EventEmitter();
 
 myEmitter.on("add_alert_to_member", ({ msg, reason }) => {
     const senderId = msg.from.id + "";
     const chatId = msg.chat.id;
-    let arReason;
-    let punishment;
-
-    if (reason === "prohibited_word") {
-        arReason = `كلمة محظورة`;
-    } else if (reason === "mention") {
-        arReason = `أسماء الحسابات والقروبات ممنوعة`;
-    } else if (reason === "telegram_url") {
-        arReason = `وضع رابط خارجي`;
-    }
+    let arReason = getArReason(reason);
 
     const senderName = msg.from.last_name
         ? `${msg.from.first_name} ${msg.from.last_name}`
@@ -26,7 +19,17 @@ myEmitter.on("add_alert_to_member", ({ msg, reason }) => {
     let stmt = db.prepare(
         `INSERT INTO alerts (telegram_id, reason) VALUES (?, ?)`
     );
-    stmt.run(senderId, reason);
+    const { lastInsertRowid } = stmt.run(senderId, reason);
+    const task = new Task("remove_alert_" + lastInsertRowid, () => {
+        try {
+            const stmt = db.prepare(`DELETE FROM alerts WHERE id = ?`);
+            stmt.run(lastInsertRowid);
+        } catch (error) {
+            console.log("I faced an error", error);
+        }
+    });
+    const job = new SimpleIntervalJob({ hours: 1 }, task);
+    addJob(job);
 
     stmt = db.prepare(`SELECT * FROM alerts WHERE telegram_id = ?`);
     const alerts = stmt.all(senderId);
@@ -34,18 +37,14 @@ myEmitter.on("add_alert_to_member", ({ msg, reason }) => {
     stmt = db.prepare(`SELECT * FROM settings WHERE key = ?`);
     const maxAllowedAlerts = stmt.get("max_alerts").value;
 
-    punishment = `تحذير (${
+    if (alerts.length % +maxAllowedAlerts === 0) {
+        myEmitter.emit("kick_member", { msg, reason });
+        return;
+    }
+
+    let punishment = `تحذير (${
         alerts.length % maxAllowedAlerts
     }/${maxAllowedAlerts})`;
-    if (alerts.length % +maxAllowedAlerts === 0) {
-        try {
-            punishment = `حظر من المجموعة`;
-            bot.kickChatMember(chatId, senderId);
-        } catch (error) {
-            console.log(`Couldn't kick the member`);
-            console.log(error);
-        }
-    }
     const message = `
     ⛔ إنذار للعضو <strong>${senderName}</strong>
 السبب: <strong>${arReason}</strong>
@@ -54,9 +53,33 @@ myEmitter.on("add_alert_to_member", ({ msg, reason }) => {
     bot.sendMessage(chatId, message, { parse_mode: "html" });
 });
 
+myEmitter.on("kick_member", ({ msg, reason }) => {
+    const senderId = msg.from.id + "";
+    const chatId = msg.chat.id;
+    let arReason = getArReason(reason);
+
+    const senderName = msg.from.last_name
+        ? `${msg.from.first_name} ${msg.from.last_name}`
+        : msg.from.first_name;
+
+    try {
+        bot.kickChatMember(chatId, senderId);
+    } catch (error) {
+        console.log(`Couldn't kick the member`);
+        console.log(error);
+    }
+    const message = `
+    ⛔ إنذار للعضو <strong>${senderName}</strong>
+السبب: <strong>${arReason}</strong>
+العقوبة: حظر من المجموعة
+    `;
+    bot.sendMessage(chatId, message, { parse_mode: "html" });
+});
+
 let latestMessage = null;
 const callbackMessages = {
-    add_prohibited_word: "إضافة كلمة محظورة",
+    add_prohibited_word: "إضافة كلمة محظورة عادية",
+    add_kick_prohibited_word: "إضافة كلمة محظورة تؤدي للحظر المباشر",
     list_prohibited_words: "رؤية الكلمات المحظورة",
     remove_prohibited_word: "حذف كلمة من الكلمات المحظورة",
     edit_automatic_message_text: "تعديل نص الرسالة التلقائية",
@@ -65,14 +88,19 @@ const callbackMessages = {
 
     enable_automatic_message: "تفعيل الرسالة التلقائية",
     disable_automatic_message: "إيقاف الرسالة التلقائية",
+    see_automatic_message: "رؤية الرسالة التلقائية",
+
+    add_accepted_link: "إضافة رابط استثنائي (لا يؤدي للعقوبة)",
 
     waiting_prohibited_message: "اكتب الكلمة المراد إضافتها",
+    waiting_kick_prohibited_message: "اكتب الكلمة المراد إضافتها",
     waiting_automatic_message_text: "اكتب الرسالة الجديدة",
     waiting_automatic_message_period:
         "اكتب رقم بين 1 و 24 ليتم التكرار كل عدد معين من الساعات",
     waiting_removed_prohibited_message: "اكتب الكلمة المراد حذفها",
     waiting_max_allowed_alerts:
         "اكتب أكبر عدد من الانذارات قبل الحظر (رقم أكبر من 1)",
+    waiting_accepted_link: "اكتب رابط القناة أو المجموعة المستثناة",
 };
 
 myEmitter.on("admin_message", ({ msg }) => {
@@ -83,6 +111,9 @@ myEmitter.on("admin_message", ({ msg }) => {
         [
             {
                 text: callbackMessages.add_prohibited_word,
+            },
+            {
+                text: callbackMessages.add_kick_prohibited_word,
             },
             {
                 text: callbackMessages.list_prohibited_words,
@@ -109,14 +140,20 @@ myEmitter.on("admin_message", ({ msg }) => {
             {
                 text: callbackMessages.disable_automatic_message,
             },
+            {
+                text: callbackMessages.see_automatic_message,
+            },
+            {
+                text: callbackMessages.add_accepted_link,
+            },
         ],
     ];
 
     if (latestMessage) {
-        if (latestMessage == callbackMessages.waiting_prohibited_message) {
+        if (latestMessage == "waiting_prohibited_message") {
             try {
                 const stmt = db.prepare(
-                    `INSERT INTO prohibited_words VALUES (?)`
+                    `INSERT INTO prohibited_words (word) VALUES (?)`
                 );
                 stmt.run(messageText.trim());
                 bot.sendMessage(chatId, "تم إضافة الكلمة بنجاح");
@@ -124,9 +161,18 @@ myEmitter.on("admin_message", ({ msg }) => {
                 console.log(error);
                 bot.sendMessage(chatId, "حدث خطأ ما. يرجى إعادة المحاولة");
             }
-        } else if (
-            latestMessage == callbackMessages.waiting_removed_prohibited_message
-        ) {
+        } else if (latestMessage == "waiting_kick_prohibited_message") {
+            try {
+                const stmt = db.prepare(
+                    `INSERT INTO prohibited_words (word, punishment) VALUES (?, ?)`
+                );
+                stmt.run(messageText.trim(), "kick");
+                bot.sendMessage(chatId, "تم إضافة الكلمة بنجاح");
+            } catch (error) {
+                console.log(error);
+                bot.sendMessage(chatId, "حدث خطأ ما. يرجى إعادة المحاولة");
+            }
+        } else if (latestMessage == "waiting_removed_prohibited_message") {
             try {
                 const stmt = db.prepare(
                     `DELETE FROM prohibited_words WHERE word = ?`
@@ -137,9 +183,7 @@ myEmitter.on("admin_message", ({ msg }) => {
                 console.log(error);
                 bot.sendMessage(chatId, "حدث خطأ ما. يرجى إعادة المحاولة");
             }
-        } else if (
-            latestMessage == callbackMessages.waiting_automatic_message_text
-        ) {
+        } else if (latestMessage == "waiting_automatic_message_text") {
             try {
                 const stmt = db.prepare(
                     `UPDATE settings SET value = ? WHERE key = 'automatic_message_text'`
@@ -150,9 +194,7 @@ myEmitter.on("admin_message", ({ msg }) => {
                 console.log(error);
                 bot.sendMessage(chatId, "حدث خطأ ما. يرجى إعادة المحاولة");
             }
-        } else if (
-            latestMessage == callbackMessages.waiting_automatic_message_period
-        ) {
+        } else if (latestMessage == "waiting_automatic_message_period") {
             const period = parseInt(messageText);
             if (isNaN(period) || period > 24 || period < 1) {
                 bot.sendMessage(chatId, "يجب أن يتم ادخال رقم بين 1 و 24");
@@ -169,9 +211,7 @@ myEmitter.on("admin_message", ({ msg }) => {
                     bot.sendMessage(chatId, "حدث خطأ ما. يرجى إعادة المحاولة");
                 }
             }
-        } else if (
-            latestMessage == callbackMessages.waiting_max_allowed_alerts
-        ) {
+        } else if (latestMessage == "waiting_max_allowed_alerts") {
             const max_allowed_alerts = parseInt(messageText);
             if (isNaN(max_allowed_alerts) || max_allowed_alerts < 1) {
                 bot.sendMessage(chatId, "يجب أن يتم ادخال رقم أكبر من 1");
@@ -187,6 +227,19 @@ myEmitter.on("admin_message", ({ msg }) => {
                     bot.sendMessage(chatId, "حدث خطأ ما. يرجى إعادة المحاولة");
                 }
             }
+        } else if (latestMessage == "waiting_accepted_link") {
+            if (messageText) {
+                try {
+                    const stmt = db.prepare(
+                        `INSERT INTO accepted_links (link) VALUES (?)`
+                    );
+                    stmt.run(messageText.trim());
+                    bot.sendMessage(chatId, "تم اضافة الرابط بنجاح");
+                } catch (error) {
+                    console.log(error);
+                    bot.sendMessage(chatId, "حدث خطأ ما. يرجى إعادة المحاولة");
+                }
+            } else bot.sendMessage(chatId, "حدث خطأ ما. يرجى إعادة المحاولة");
         }
         latestMessage = null;
         return;
@@ -198,20 +251,31 @@ myEmitter.on("admin_message", ({ msg }) => {
                 chatId,
                 callbackMessages.waiting_prohibited_message
             );
-            latestMessage = callbackMessages.waiting_prohibited_message;
+            latestMessage = "waiting_prohibited_message";
+            break;
+        case callbackMessages.add_kick_prohibited_word:
+            bot.sendMessage(
+                chatId,
+                callbackMessages.waiting_kick_prohibited_message
+            );
+            latestMessage = "waiting_kick_prohibited_message";
             break;
         case callbackMessages.list_prohibited_words:
             try {
                 const stmt = db.prepare(`SELECT * FROM prohibited_words`);
                 let prohibited_words = stmt.all();
-                prohibited_words = prohibited_words.map(
-                    (wordObj) => wordObj.word
-                );
                 bot.sendMessage(
                     chatId,
                     `
                 الكلمات المحظورة: 
-${prohibited_words.join("\n")}
+${prohibited_words
+    .map(
+        (wordObj) =>
+            `${wordObj.word} ${
+                wordObj.punishment === "kick" ? "(تؤدي للحظر المباشر)" : ""
+            }`
+    )
+    .join("\n")}
                 `
                 );
             } catch (error) {
@@ -224,28 +288,28 @@ ${prohibited_words.join("\n")}
                 chatId,
                 callbackMessages.waiting_removed_prohibited_message
             );
-            latestMessage = callbackMessages.waiting_removed_prohibited_message;
+            latestMessage = "waiting_removed_prohibited_message";
             break;
         case callbackMessages.edit_automatic_message_text:
             bot.sendMessage(
                 chatId,
                 callbackMessages.waiting_automatic_message_text
             );
-            latestMessage = callbackMessages.waiting_automatic_message_text;
+            latestMessage = "waiting_automatic_message_text";
             break;
         case callbackMessages.edit_automatic_message_period:
             bot.sendMessage(
                 chatId,
                 callbackMessages.waiting_automatic_message_period
             );
-            latestMessage = callbackMessages.waiting_automatic_message_period;
+            latestMessage = "waiting_automatic_message_period";
             break;
         case callbackMessages.edit_max_allowed_alerts:
             bot.sendMessage(
                 chatId,
                 callbackMessages.waiting_max_allowed_alerts
             );
-            latestMessage = callbackMessages.waiting_max_allowed_alerts;
+            latestMessage = "waiting_max_allowed_alerts";
             break;
         case callbackMessages.enable_automatic_message:
             try {
@@ -272,6 +336,25 @@ ${prohibited_words.join("\n")}
                 console.log(error);
                 bot.sendMessage(chatId, "حدث خطأ ما. يرجى إعادة المحاولة");
             }
+            break;
+        case callbackMessages.see_automatic_message:
+            try {
+                const stmt = db.prepare(
+                    `SELECT * FROM settings WHERE key = 'automatic_message_text'`
+                );
+                const automaticMessage = stmt.get();
+                console.log(automaticMessage);
+                if (automaticMessage.value.length === 0)
+                    bot.sendMessage(chatId, "(الرسالة فارغة)");
+                else bot.sendMessage(chatId, automaticMessage.value);
+            } catch (error) {
+                console.log(error);
+                bot.sendMessage(chatId, "حدث خطأ ما. يرجى إعادة المحاولة");
+            }
+            break;
+        case callbackMessages.add_accepted_link:
+            bot.sendMessage(chatId, callbackMessages.waiting_accepted_link);
+            latestMessage = "waiting_accepted_link";
             break;
         default:
             bot.sendMessage(chatId, "ماذا تريد أن تفعل؟", {
