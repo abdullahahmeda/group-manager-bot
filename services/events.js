@@ -28,7 +28,7 @@ myEmitter.on("add_alert_to_member", ({ msg, reason }) => {
             console.log("I faced an error", error);
         }
     });
-    const job = new SimpleIntervalJob({ hours: 1 }, task);
+    const job = new SimpleIntervalJob({ hours: 24 }, task);
     addJob(job);
 
     stmt = db.prepare(`SELECT * FROM alerts WHERE telegram_id = ?`);
