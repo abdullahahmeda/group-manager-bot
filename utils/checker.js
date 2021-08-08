@@ -9,22 +9,23 @@ const db = require("../db");
  */
 const containsTelegramURL = (msg) => {
     const entities = msg.entities ? msg.entities : [];
-    const regex = /([https]+?:\/+)?[a-z0-9]*?\.?(telegram|t)\.me/i;
+    const regex = /(telegram|t)\.me\/[a-z0-9_]+/i;
     for (let entity of entities) {
         if (entity.type === "url") {
             const messageText = msg.text;
-            const link = messageText.slice(
+            let link = messageText.slice(
                 entity.offset,
                 entity.offset + entity.length
             );
-            if (regex.test(link)) {
-                const stmt = db.prepare(
-                    `SELECT * FROM accepted_links WHERE link LIKE ?`
-                );
-                const result = stmt.get(`%${link}%`);
-                if (result) return false;
-                else return true;
-            }
+            link = link.match(regex);
+            if (link === null) continue;
+            link = link[0];
+            const stmt = db.prepare(
+                `SELECT * FROM accepted_links WHERE link LIKE ?`
+            );
+            const result = stmt.get(`%${link}%`);
+            if (result) return false;
+            else return true;
         }
     }
     return false;
