@@ -1,9 +1,23 @@
-/* global process */
-require("dotenv").config();
-const { createDBConnection } = require("./services/database");
+const Database = require('better-sqlite3')
+require('dotenv').config()
 
-const DB_PATH = process.env.DB_PATH || "database.db";
+/**
+ *
+ * Returns a database from the connection
+ *
+ * @param {string} path
+ * @returns {Database.Database} The database
+ */
+const createDBConnection = (path) => {
+  const options = {
+    readonly: false,
+    fileMustExist: false
+  }
 
-const db = createDBConnection(DB_PATH);
+  const db = new Database(path, options)
+  return db
+}
 
-module.exports = db;
+const db = createDBConnection('database.db')
+
+module.exports = db

@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap');
+
+:root {
+  --body-font-family: 'Noto Sans Arabic', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--body-font-family);
+}
+
+textarea { resize: vertical; }
+
+.d-flex { display: flex; }
+.justify-space-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.align-center { align-items: center; }
+.w-100 { width: 100%; }
+.mb-2 { margin-bottom: 1rem; }
+
+.button {
+  border: none;
+  padding: 0.5rem 1rem;
+  font-family: var(--body-font-family);
+  text-decoration: none;
+  font-size: 1rem;
+  border-radius: 3px;
+}
+
+.button:not(:disabled) { cursor: pointer; }
+
+.button-success {
+  background-color: #55af26;
+  color: #fff;
+}
+
+.button-success:hover { background-color: #47941f; }
+
+.button-primary {
+  background-color: #1b6bbf;
+  color: #fff;
+}
+
+.button-primary:hover { background-color: #175aa0; }
+
+.button-danger {
+  background-color: #c71717;
+  color: #fff;
+}
+
+.button-danger:hover { background-color: #9e0e0e; }
+
+.form-control {
+  border: none;
+  padding: .3rem .5rem;
+  font-family: var(--body-font-family);
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.4)
+}
+
+.container {
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.accordion-container {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.accordion-item { background-color: #f9f9f9; }
+
+.accordion-item + .accordion-item { margin-top: 1rem; }
+
+.accordion-header {
+  background-color: #ccc;
+  padding: 0.5rem;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.accordion-body {
+  padding: 0.5rem 1rem;
+  background-color: #f9f9f9;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+}
+
+.reply {
+  background-color: #eee;
+  padding: 0.5rem;
+  border-radius: 3px;
+  margin-right: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.reply + .reply { margin-top: 0.5rem; }

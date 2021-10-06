@@ -1,48 +1,54 @@
-/* global process */
-require("dotenv").config();
-const { setupDB } = require("./services/database");
+require('dotenv').config()
+const { setupDB, setupJobs } = require('./setup')
 const {
-    onURLViolation,
-    onProhibitedViolation,
-    onMentionViolation,
-} = require("./services/violations");
-const {
-    containsTelegramURL,
-    containsProhibited,
-    containsMention,
-} = require("./utils/checker");
+  containsTelegramURL,
+  containsProhibited,
+  containsAutomaticReply
+} = require('./utils/check')
 
-const bot = require("./bot");
-const db = require("./db");
-const myEmitter = require("./services/events");
-const { initAutomaticMessageScheduler } = require("./services/jobs");
+const handlers = require('./telegram-bot/handlers')
+
+const bot = require('./telegram-bot/bot')
+const db = require('./db')
+const server = require('./webserver/server')
+const scheduler = require('./scheduler')
 
 try {
-    setupDB(db);
+  setupDB(db)
+  setupJobs(scheduler)
 } catch (error) {
-    console.log("ERROR: couldn't initialize the database");
-    console.log(error);
-    process.exit(1);
+  console.log(error)
+  process.exit(1)
 }
 
-initAutomaticMessageScheduler();
+console.log('Bot has started')
 
-console.log("Bot has started");
-bot.on("text", (msg) => {
-    const chatId = msg.chat.id;
-    const messageText = msg.text;
+const PORT = process.env.PORT || 3000
+server.listen(PORT, () => console.log(`SERVER HAS STARTED AT ${PORT}`))
 
-    if (chatId == process.env.TELEGRAM_GROUP_ID) {
-        const prohibitedPriority = containsProhibited(messageText);
-        if (containsTelegramURL(msg)) onURLViolation(msg);
-        else if (prohibitedPriority)
-            onProhibitedViolation(msg, prohibitedPriority);
-        //else if (containsMention(msg)) onMentionViolation(msg);
-    } else if (chatId == process.env.TELEGRAM_ADMIN_ID) {
-        myEmitter.emit("admin_message", { msg });
-    }
-});
+bot.on('new_chat_members', handlers.enterAndLeaveMessages)
+bot.on('left_chat_member', handlers.enterAndLeaveMessages)
 
-process.on("exit", () => db.close());
+bot.on('callback_query', (msg) => handlers.answerCallbackQuery(msg))
 
-bot.on("polling_error", (err) => console.log(err));
+bot.on('message', async (msg) => {
+  const chatId = msg.chat.id
+  const messageText = msg.text
+
+  if (`${chatId}` === `${process.env.TELEGRAM_GROUP_ID}`) {
+    const prohibited = containsProhibited(messageText)
+    const automaticReplyIndex = await containsAutomaticReply(msg)
+
+    if (containsTelegramURL(msg)) return handlers.urlViolation(msg)
+    else if (prohibited === 1) return handlers.prohibitedWord(msg)
+    else if (prohibited === 2) return handlers.extraProhibitedWord(msg)
+
+    if (msg.forward_date) handlers.forwardedMessage(msg)
+
+    if (automaticReplyIndex !== null) handlers.automaticReply(msg, automaticReplyIndex)
+  } else if (`${chatId}` === `${process.env.TELEGRAM_ADMIN_ID}`) handlers.adminMessage(msg)
+})
+
+process.on('exit', () => db.close())
+
+bot.on('polling_error', (err) => console.log(err))
