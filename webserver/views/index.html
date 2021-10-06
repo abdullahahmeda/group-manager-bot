@@ -47,7 +47,6 @@
   <script>
     document.getElementById('add-reply-button').addEventListener('click', function () {
       const template = `
-      <div class="accordion-item">
         <h3 class="accordion-header">أي رسالة تحتوي على: <input type="text" class="form-control contains-input" required></h3>
         <div class="accordion-body">
           <p>الرد: <input type="text" class="form-control message-input" required></p>
@@ -67,24 +66,27 @@
         <div class="d-flex justify-end">
           <button class="button button-danger" onclick="removeReply(event)">حذف بالكامل</button>
         </div>
-      </div>
       `
-      document.querySelector('.accordion-container').innerHTML += template
+      const div = document.createElement('div')
+      div.classList.add('accordion-item')
+      div.innerHTML = template
+      document.querySelector('.accordion-container').appendChild(div)
     })
 
     function addChoice (event) {
       const accordoinBody = event.target.parentElement.parentElement
       const template = `
-      <div class="reply">
-        <p>اسم الاختيار: <input type="text" class="form-control response-title-input" required></p>
-        <h5>محتوى الرد</h5>
-        <textarea class="form-control w-100 response-content-input" required></textarea>
-        <div class="d-flex justify-end">
-          <button class="button button-danger" onclick="removeChoice(event)">حذف</button>
-        </div>
+      <p>اسم الاختيار: <input type="text" class="form-control response-title-input" required></p>
+      <h5>محتوى الرد</h5>
+      <textarea class="form-control w-100 response-content-input" required></textarea>
+      <div class="d-flex justify-end">
+        <button class="button button-danger" onclick="removeChoice(event)">حذف</button>
       </div>
       `
-      accordoinBody.innerHTML += template
+      const div = document.createElement('div')
+      div.classList.add('reply')
+      div.innerHTML = template
+      accordoinBody.appendChild(div)
     }
 
     function removeChoice (event) {

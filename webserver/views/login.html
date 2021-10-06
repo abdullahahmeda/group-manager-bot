@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <form class="login-form" method="POST">
+      <h3>تسجيل الدخول</h3>
+      <input type="email" name="email" class="form-control" placeholder="البريد الالكتروني" required>
+      <input type="password" name="password" class="form-control" placeholder="كلمة المرور" required>
+      {% if error %}<p>{{ error }}</p>{% endif %}
+      <button type="submit" class="button button-primary">دخول</button>
+    </form>
+  </div>
+</body>
+</html>
