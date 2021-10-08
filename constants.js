@@ -7,6 +7,14 @@ const paths = {
   automaticReplies: path.resolve(__dirname, 'automatic_replies.json')
 }
 
+const thanksPhrases = {
+  شكرا: 'العفو',
+  'يعطيك العافية': 'الله يعطيك العافية',
+  'جزاك الله خير': 'جزانا وإياك',
+  'يجزيك خير': 'الله يجازيك خير',
+  'يجازيك خير': 'الله يجازيك خير'
+}
+
 const settingsKeys = {
   max_alerts: 'max_alerts',
   automatic_message_status: 'automatic_message_status',
@@ -18,5 +26,6 @@ const settingsKeys = {
 
 module.exports = {
   settingsKeys,
-  paths
+  paths,
+  thanksPhrases
 }

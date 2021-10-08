@@ -8,7 +8,7 @@ function automaticReply (msg, automaticReplyIndex) {
       const automaticReplyObj = data[automaticReplyIndex].responses
       bot.sendMessage(process.env.TELEGRAM_GROUP_ID, data[automaticReplyIndex].message, {
         reply_markup: {
-          inline_keyboard: automaticReplyObj.map((response, index) => ([{ text: response.title, callback_data: `automatic_reply-${automaticReplyIndex}-${index}` }]))
+          inline_keyboard: automaticReplyObj.map((response, index) => ([{ text: response.title, callback_data: `automatic_reply-${automaticReplyIndex}-${index}-${msg.from.id}` }]))
         }
       })
     })
