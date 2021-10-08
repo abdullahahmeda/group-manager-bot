@@ -59,7 +59,7 @@ const containsAutomaticReply = (msg) => {
       for (const [index, reply] of replies.entries()) {
         const repliesContains = reply.contains.split('.')
         for (const replyContain of repliesContains) {
-          if (messageText.indexOf(replyContain) > -1) return index
+          if (messageText && replyContain && messageText.indexOf(replyContain) > -1) return index
         }
       }
       return null
@@ -84,7 +84,7 @@ const containsMention = (msg) => {
 const containsThanks = async (msg) => {
   const messageText = msg.text
   const username = (await bot.getMe()).username
-  if (messageText.indexOf(`@${username}`) === -1) return null
+  if (messageText && messageText.indexOf(`@${username}`) === -1) return null
   for (const thankPhrase of Object.keys(thanksPhrases)) {
     if (messageText.indexOf(thankPhrase) > -1) return thankPhrase
   }
