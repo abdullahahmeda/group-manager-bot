@@ -37,7 +37,6 @@ bot.on('message', async (msg) => {
   const messageText = msg.text
 
   if (`${chatId}` === `${process.env.TELEGRAM_GROUP_ID}`) {
-    console.log(msg)
     const thankPhrase = await containsThanks(msg)
     const prohibited = containsProhibited(messageText)
     const automaticReplyIndex = await containsAutomaticReply(msg)
