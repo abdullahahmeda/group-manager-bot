@@ -1,6 +1,6 @@
 const db = require('../db')
 const jsonfile = require('jsonfile')
-const { paths, thanksPhrases } = require('../constants')
+const { paths } = require('../constants')
 const bot = require('../telegram-bot/bot')
 
 /**
@@ -81,18 +81,24 @@ const containsMention = (msg) => {
   return false
 }
 
-const containsThanks = async (msg) => {
+const containsMentionReply = async (msg) => {
   const messageText = msg.text
   const username = (await bot.getMe()).username
   if (messageText && messageText.indexOf(`@${username}`) === -1) return null
-  for (const thankPhrase of Object.keys(thanksPhrases)) {
-    if (messageText.indexOf(thankPhrase) > -1) return thankPhrase
-  }
-  return null
+  return jsonfile.readFile(paths.mentionReplies)
+    .then(replies => {
+      for (const [index, reply] of replies.entries()) {
+        const repliesContains = reply.contains.split('.')
+        for (const replyContain of repliesContains) {
+          if (messageText && replyContain && messageText.indexOf(replyContain) > -1) return index
+        }
+      }
+      return null
+    })
 }
 
 exports.containsTelegramURL = containsTelegramURL
 exports.containsProhibited = containsProhibited
 exports.containsMention = containsMention
 exports.containsAutomaticReply = containsAutomaticReply
-exports.containsThanks = containsThanks
+exports.containsMentionReply = containsMentionReply

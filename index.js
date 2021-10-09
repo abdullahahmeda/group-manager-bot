@@ -4,7 +4,7 @@ const {
   containsTelegramURL,
   containsProhibited,
   containsAutomaticReply,
-  containsThanks
+  containsMentionReply
 } = require('./utils/check')
 
 const handlers = require('./telegram-bot/handlers')
@@ -37,7 +37,7 @@ bot.on('message', async (msg) => {
   const messageText = msg.text
 
   if (`${chatId}` === `${process.env.TELEGRAM_GROUP_ID}`) {
-    const thankPhrase = await containsThanks(msg)
+    const mentionReplyIndex = await containsMentionReply(msg)
     const prohibited = containsProhibited(messageText)
     const automaticReplyIndex = await containsAutomaticReply(msg)
 
@@ -49,7 +49,7 @@ bot.on('message', async (msg) => {
 
     if (automaticReplyIndex !== null) handlers.automaticReply(msg, automaticReplyIndex)
 
-    if (thankPhrase !== null) handlers.thanksMessage(msg, thankPhrase)
+    if (mentionReplyIndex !== null) handlers.mentionReply(msg, mentionReplyIndex)
   } else if (`${chatId}` === `${process.env.TELEGRAM_ADMIN_ID}`) handlers.adminMessage(msg)
 })
 

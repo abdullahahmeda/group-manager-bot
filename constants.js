@@ -4,15 +4,8 @@ const paths = {
   root: __dirname,
   webserver: path.resolve(__dirname, 'webserver'),
   telegramBot: path.resolve(__dirname, 'telegram-bot'),
-  automaticReplies: path.resolve(__dirname, 'automatic_replies.json')
-}
-
-const thanksPhrases = {
-  شكرا: 'العفو',
-  'يعطيك العافية': 'الله يعطيك العافية',
-  'جزاك الله خير': 'جزانا وإياك',
-  'يجزيك خير': 'الله يجازيك خير',
-  'يجازيك خير': 'الله يجازيك خير'
+  automaticReplies: path.resolve(__dirname, 'automatic_replies.json'),
+  mentionReplies: path.resolve(__dirname, 'mention_replies.json')
 }
 
 const settingsKeys = {
@@ -26,6 +19,5 @@ const settingsKeys = {
 
 module.exports = {
   settingsKeys,
-  paths,
-  thanksPhrases
+  paths
 }

@@ -9,7 +9,10 @@
 </head>
 <body>
   <div class="container">
-    <form class="login-form" method="POST">
+    <form class="login-form" action="/login" method="POST">
+      {% if r %}
+      <input type="hidden" name="r" value="{{ r }}">
+      {% endif %}
       <h3>تسجيل الدخول</h3>
       <input type="email" name="email" class="form-control" placeholder="البريد الالكتروني" required>
       <input type="password" name="password" class="form-control" placeholder="كلمة المرور" required>

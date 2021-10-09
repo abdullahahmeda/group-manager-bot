@@ -25,7 +25,7 @@ nunjucks.configure(path.resolve(__dirname, 'views'), {
 
 app.get('/', async (req, res) => {
   if (!req.session.isLoggedIn) {
-    return res.render('login.html')
+    return res.redirect('/login')
   }
   const automaticReplies = await jsonfile.readFile(paths.automaticReplies)
   res.render('index.html', {
@@ -33,10 +33,26 @@ app.get('/', async (req, res) => {
   })
 })
 
-app.post('/', (req, res) => {
+app.get('/mentions', async (req, res) => {
+  if (!req.session.isLoggedIn) {
+    return res.redirect('/login?r=mentions')
+  }
+  const mentionReplies = await jsonfile.readFile(paths.mentionReplies)
+  res.render('mentions.html', {
+    mentionReplies
+  })
+})
+
+app.get('/login', (req, res) => {
+  res.render('login.html', {
+    r: req.query.r ? `/${req.query.r}` : undefined
+  })
+})
+
+app.post('/login', (req, res) => {
   if (req.body.email === 'Nomani1993@gmail.com' && req.body.password === 'Aa112233') {
     req.session.isLoggedIn = true
-    return req.session.save((_) => res.redirect('/'))
+    return req.session.save((_) => res.redirect(req.body.r ? req.body.r : '/'))
   }
   res.render('login.html', {
     error: 'الإيميل أو كلمة السر غير صحيحين'
@@ -44,7 +60,7 @@ app.post('/', (req, res) => {
 })
 
 app.post('/save', (req, res) => {
-  jsonfile.writeFile(paths.automaticReplies, req.body)
+  jsonfile.writeFile(req.body.type === 'automatic' ? paths.automaticReplies : paths.mentionReplies, req.body.replies)
     .then(() => res.json({ ok: true, message: 'تم تحديث الردود بنجاح' }))
     .catch((error) => {
       console.log(error)

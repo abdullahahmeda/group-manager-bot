@@ -6,7 +6,7 @@ const adminMessage = require('./adminMessage')
 const forwardedMessage = require('./forwradedMessage')
 const automaticReply = require('./automaticReply')
 const answerCallbackQuery = require('./answerCallbackQuery')
-const thanksMessage = require('./thanksMessage')
+const mentionReply = require('./mentionReply')
 
 module.exports = {
   enterAndLeaveMessages,
@@ -17,5 +17,5 @@ module.exports = {
   forwardedMessage,
   automaticReply,
   answerCallbackQuery,
-  thanksMessage
+  mentionReply
 }

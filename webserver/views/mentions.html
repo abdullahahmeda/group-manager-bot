@@ -17,25 +17,11 @@
       {% for reply in automaticReplies %}
       <div class="accordion-item">
         <div class="accordion-header d-flex align-center" onclick="toggleActive(event)">
-          <h3>أي رسالة تحتوي على:</h3>
+          <h3>أي رسالة منشن تحتوي على:</h3>
           <input type="text" class="form-control contains-input" value="{{ reply.contains }}" onclick="stopPropagation(event)" required>
         </div>
         <div class="accordion-body">
           <p>الرد: <input type="text" class="form-control message-input" value="{{ reply.message }}" required></p>
-          <div class="d-flex justify-space-between align-center">
-            <h4>الاختيارات</h4>
-            <button class="button button-success" onclick="addChoice(event)">إضافة اختيار</button>
-          </div>
-          {% for response in reply.responses %}
-          <div class="reply">
-            <p>اسم الاختيار: <input type="text" class="form-control response-title-input" value="{{ response.title }}" required></p>
-            <h5>محتوى الرد</h5>
-            <textarea class="form-control w-100 response-content-input" required>{{ response.content }}</textarea>
-            <div class="d-flex justify-end">
-              <button class="button button-danger" onclick="removeChoice(event)">حذف</button>
-            </div>
-          </div>
-          {% endfor %}
           <div class="d-flex justify-end">
             <button class="button button-danger" onclick="removeReply(event)">حذف بالكامل</button>
           </div>
@@ -60,23 +46,11 @@
     document.getElementById('add-reply-button').addEventListener('click', function () {
       const template = `
         <div class="accordion-header d-flex align-center" onclick="toggleActive(event)">
-          <h3>أي رسالة تحتوي على:</h3>
+          <h3>أي رسالة منشن تحتوي على:</h3>
           <input type="text" class="form-control contains-input" onclick="stopPropagation(event)" required>
         </div>
         <div class="accordion-body">
           <p>الرد: <input type="text" class="form-control message-input" required></p>
-          <div class="d-flex justify-space-between align-center">
-            <h4>الاختيارات</h4>
-            <button class="button button-success" onclick="addChoice(event)">إضافة اختيار</button>
-          </div>
-          <div class="reply">
-            <p>اسم الاختيار: <input type="text" class="form-control response-title-input" required></p>
-            <h5>محتوى الرد</h5>
-            <textarea class="form-control w-100 response-content-input" required></textarea>
-            <div class="d-flex justify-end">
-              <button class="button button-danger" onclick="removeChoice(event)">حذف</button>
-            </div>
-          </div>
           <div class="d-flex justify-end">
             <button class="button button-danger" onclick="removeReply(event)">حذف بالكامل</button>
           </div>
@@ -88,29 +62,6 @@
       div.innerHTML = template
       document.querySelector('.accordion-container').appendChild(div)
     })
-
-    function addChoice (event) {
-      const accordoinBody = event.target.parentElement.parentElement
-      const template = `
-      <p>اسم الاختيار: <input type="text" class="form-control response-title-input" required></p>
-      <h5>محتوى الرد</h5>
-      <textarea class="form-control w-100 response-content-input" required></textarea>
-      <div class="d-flex justify-end">
-        <button class="button button-danger" onclick="removeChoice(event)">حذف</button>
-      </div>
-      `
-      const div = document.createElement('div')
-      div.classList.add('reply')
-      div.innerHTML = template
-      accordoinBody.appendChild(div)
-    }
-
-    function removeChoice (event) {
-      const choice = event.target.parentElement.parentElement
-      const accordoinBody = choice.parentElement
-      if (accordoinBody.querySelectorAll('.reply').length > 1) choice.remove()
-      else alert('يجب أن يكون هناك اختيار واحد على الأقل.')
-    }
 
     function removeReply (event) {
       const reply = event.target.parentElement.parentElement.parentElement
@@ -125,22 +76,13 @@
         obj.contains = item.querySelector('.contains-input').value
         obj.message = item.querySelector('.message-input').value
         if (!obj.contains || !obj.message) return alert('هناك حقل فارغ. يرجى كتابة كل الحقول.')
-        obj.type = 'reply'
-        obj.responses = []
-        for (const replyEl of item.querySelectorAll('.reply')) {
-          const reply = {}
-          reply.title = replyEl.querySelector('.response-title-input').value
-          reply.content = replyEl.querySelector('.response-content-input').value
-          if (!reply.title || !reply.content) return alert('هناك حقل فارغ. يرجى كتابة كل الحقول.')
-          obj.responses.push(reply)
-        }
         data.push(obj)
       }
 
       fetch('/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'automatic', replies: data })
+        body: JSON.stringify({ type: 'mention', replies: data })
       })
         .then(response => response.json())
         .then(data => alert(data.message))
