@@ -40,6 +40,7 @@ const containsTelegramURL = (msg) => {
  * @returns {number}
  */
 const containsProhibited = (s) => {
+  if (typeof s !== 'string') return 0
   const stmt = db.prepare('SELECT * FROM prohibited_words')
   const words = stmt.all()
   for (const wordObj of words) {
