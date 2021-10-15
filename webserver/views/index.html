@@ -69,14 +69,6 @@
             <h4>الاختيارات</h4>
             <button class="button button-success" onclick="addChoice(event)">إضافة اختيار</button>
           </div>
-          <div class="reply">
-            <p>اسم الاختيار: <input type="text" class="form-control response-title-input" required></p>
-            <h5>محتوى الرد</h5>
-            <textarea class="form-control w-100 response-content-input" required></textarea>
-            <div class="d-flex justify-end">
-              <button class="button button-danger" onclick="removeChoice(event)">حذف</button>
-            </div>
-          </div>
           <div class="d-flex justify-end">
             <button class="button button-danger" onclick="removeReply(event)">حذف بالكامل</button>
           </div>
@@ -108,8 +100,9 @@
     function removeChoice (event) {
       const choice = event.target.parentElement.parentElement
       const accordoinBody = choice.parentElement
-      if (accordoinBody.querySelectorAll('.reply').length > 1) choice.remove()
-      else alert('يجب أن يكون هناك اختيار واحد على الأقل.')
+      choice.remove()
+      // if (accordoinBody.querySelectorAll('.reply').length > 1) choice.remove()
+      // else alert('يجب أن يكون هناك اختيار واحد على الأقل.')
     }
 
     function removeReply (event) {

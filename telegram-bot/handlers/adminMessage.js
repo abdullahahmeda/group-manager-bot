@@ -41,13 +41,13 @@ const replies = {
   addAcceptedLink: 'إضافة رابط استثنائي (لا يؤدي للعقوبة)',
   waitingInputForAddAcceptedLink: 'اكتب رابط القناة أو المجموعة المستثناة',
 
-  addAllowedForward: 'إضافة يوزرنيم للتحويل',
-  waitingInputForAddAllowedForward: 'اكتب اليوزرنيم (بدون علامة @)',
+  addAllowedForward: 'إضافة يوزر للتحويل',
+  waitingInputForAddAllowedForward: 'اكتب معرف التلجرام',
 
   listAllowedForwards: 'رؤية اليوزرات المقبول منها التحويل',
 
   removeAllowedForward: 'حذف يوزر من التحويل',
-  waitingInputForRemoveAllowedForward: 'اكتب اليوزرنيم المراد حذفه',
+  waitingInputForRemoveAllowedForward: 'اكتب معرف التلجرام المراد حذفه',
 
   enableAutomaticMessage: 'تفعيل الرسالة التلقائية',
 

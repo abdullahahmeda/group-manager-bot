@@ -60,7 +60,7 @@ const containsAutomaticReply = (msg) => {
       for (const [index, reply] of replies.entries()) {
         const repliesContains = reply.contains.split('.')
         for (const replyContain of repliesContains) {
-          if (messageText && replyContain && messageText.indexOf(replyContain) > -1) return index
+          if (messageText && replyContain && containsWords(messageText, replyContain)) return index
         }
       }
       return null
@@ -85,17 +85,39 @@ const containsMention = (msg) => {
 const containsMentionReply = async (msg) => {
   const messageText = msg.text
   const username = (await bot.getMe()).username
-  if (messageText && messageText.indexOf(`@${username}`) === -1) return null
+  if ((messageText && messageText.indexOf(`@${username}`) === -1) && !msg.reply_to_message) return null
+  if (msg.reply_to_message && msg.reply_to_message.from?.username !== username) return null
   return jsonfile.readFile(paths.mentionReplies)
     .then(replies => {
       for (const [index, reply] of replies.entries()) {
         const repliesContains = reply.contains.split('.')
         for (const replyContain of repliesContains) {
-          if (messageText && replyContain && messageText.indexOf(replyContain) > -1) return index
+          if (messageText && replyContain && containsWords(messageText, replyContain)) return index
         }
       }
       return null
     })
+}
+
+const containsWords = (string, w) => {
+  const words = string.split(/[\s,\?\,\.!]+/)
+  w = w.split(' ')
+  let j = 0
+  for (let i = 0; i < words.length; i++) {
+    if (words[i] === w[j]) {
+      if (j === w.length - 1) return true
+      if (i === words.length - 1) return false
+      j++
+    } else {
+      j = 0
+      if (words[i] === w[j]) {
+        if (j === w.length - 1) return true
+        if (i === words.length - 1) return false
+        j++
+      }
+    }
+  }
+  return false
 }
 
 exports.containsTelegramURL = containsTelegramURL
