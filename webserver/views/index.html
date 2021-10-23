@@ -21,7 +21,8 @@
           <input type="text" class="form-control contains-input" value="{{ reply.contains }}" onclick="stopPropagation(event)" required>
         </div>
         <div class="accordion-body">
-          <p>الرد: <input type="text" class="form-control message-input" value="{{ reply.message }}" required></p>
+          <p>الرد:</p>
+          <textarea class="form-control message-input w-100" required>{{ reply.message }}</textarea>
           <div class="d-flex justify-space-between align-center">
             <h4>الاختيارات</h4>
             <button class="button button-success" onclick="addChoice(event)">إضافة اختيار</button>
@@ -64,7 +65,8 @@
           <input type="text" class="form-control contains-input" onclick="stopPropagation(event)" required>
         </div>
         <div class="accordion-body">
-          <p>الرد: <input type="text" class="form-control message-input" required></p>
+          <p>الرد:</p>
+          <textarea class="form-control message-input w-100" required></textarea>
           <div class="d-flex justify-space-between align-center">
             <h4>الاختيارات</h4>
             <button class="button button-success" onclick="addChoice(event)">إضافة اختيار</button>
