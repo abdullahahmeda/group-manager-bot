@@ -14,6 +14,8 @@ body {
 textarea { resize: vertical; }
 
 .d-flex { display: flex; }
+.d-block { display: block; }
+.d-none { display: none; }
 .justify-space-between { justify-content: space-between; }
 .justify-end { justify-content: flex-end; }
 .align-center { align-items: center; }
@@ -141,3 +143,8 @@ textarea { resize: vertical; }
 }
 
 .reply + .reply { margin-top: 0.5rem; }
+
+.replies-types {
+  text-align: center;
+  margin-top: 3rem;
+}
